@@ -28,10 +28,7 @@ class N_Puzzle(Problema):
         posUltimaFila=range(self.n-self.longitudFila, self.n)
         posPimeraColumna=range(0, self.n, self.longitudFila)
         posUltimaColumna=range(self.longitudFila-1, self.n, self.longitudFila)
-        print(list(posPrimeraFila))
-        print(list(posUltimaFila))
-        print(list(posPimeraColumna))
-        print(list(posUltimaColumna))
+
 
         
         if pos_hueco not in posPrimeraFila:
