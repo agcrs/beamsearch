@@ -1,45 +1,6 @@
 from N_Crepes import *
 from N_Puzzle import *
-
-""""Metodo para obtener el numero de fichas colocadas correctamentes en un estadod de N-puzzle"""
-def fichasEnOrdenNPuzzle(estado):
-    fichasEnOrden=[]
-    for i in range(len(estado)):
-        if(estado[i]== i):
-            fichasEnOrden.append(i)
-
-def heuristicaManhattan(estado1, estado2):
-    res = 1
-    fichasEnOrdenEstado1 = fichasEnOrdenNPuzzle(estado1)
-    fichasEnOrdenEstado2 = fichasEnOrdenNPuzzle(estado2)
-
-    if (fichasEnOrdenEstado1 < fichasEnOrdenEstado2):
-        res = -1
-    elif (fichasEnOrdenEstado1 == fichasEnOrdenEstado2):
-        res = 0
-    return res
-
-
-def obtenerGapEstadoNCrepe(estado):
-    gap=0
-    for i in range(len(estado)):
-        if(estado[i]-estado[i+1]>1):
-            gap+=1
-    return gap
-
-
-""""Metodo para obtener los gap Asociados a un estado de N-crepes"""
-def heuristicaGap(estado1, estado2):
-    res = 1
-    gapEstado1 = obtenerGapEstadoNCrepe(estado1)
-    gapEstado2 = obtenerGapEstadoNCrepe(estado2)
-
-    if (gapEstado1 < gapEstado2):
-        res = -1
-    elif (gapEstado1 == gapEstado2):
-        res = 0
-    return res
-
+from Utilidades import *
 
 
 """"bloqueEstadosActual es la B actual que estamos visitando"""
@@ -52,17 +13,13 @@ def busquedaHaz(anchuraHaz,tamMemoria,memoria, problema, bloqueEstadosActual, co
         accionesAplicables = problema.acciones(estado)
         for accion in accionesAplicables:
             estadoGenerado=problema.aplica(estado)
+            """"Preguntar en  tutoria si eso es asi, es decir si el estado esta en memoria no se añade a sucesores"""
             if not(memoria.contains(estadoGenerado)):
                 estadosSucesores.append(estadoGenerado)
 
             """Comprobamos si los nuevos estados generados son estado final"""
             if(problema.estado_final(estadoGenerado)):
                 return coste
-
-    """Pendiente de preguntar en tutoria"""
-    if (len(estadosSucesores)<anchuraHaz):
-        # En este caso debemos lanzar error en la aplicacion
-        raise Exception('La generacion de sucesores no ha completado el tamaño del bloque B = ' + anchuraHaz)
 
     """"Ordenamos por heuristica"""
     if(type(problema) is N_Crepes):
@@ -71,8 +28,20 @@ def busquedaHaz(anchuraHaz,tamMemoria,memoria, problema, bloqueEstadosActual, co
         estadosSucesores=sorted(estadosSucesores, key=heuristicaManhattan)
 
 
-    """Ponemos el primer bloque en memoria"""
-    memoria.append(estadosSucesores[0])
+    """"Dividimos todos los estados sucesores en B bloques en funcion de la anchura del haz"""
+    estadosSucesoresEnBloques = [estadosSucesores[i:i + anchuraHaz] for i in range(0, len(estadosSucesores), anchuraHaz)]
+
+    """"Cogemos el primer bloque ya que en este algoritmo sin backtracking siempre se explorará el primero"""
+    bSiguienteAExplorar = estadosSucesoresEnBloques[0]
+
+    """Pendiente de preguntar en tutoria"""
+    if (len(bSiguienteAExplorar) < anchuraHaz):
+        # En este caso debemos lanzar error en la aplicacion
+        raise Exception('La generacion de sucesores no ha completado el tamaño del bloque B = ' + anchuraHaz)
+
+    """Lo ponemos en memoria en memoria"""
+    memoria.append(bSiguienteAExplorar)
+
     if(len(memoria)>tamMemoria):
         raise Exception('El tamaño de la memoria:+ ' + tamMemoria + ' ha llegado a su limite no caben mas bloques B.')
 
@@ -92,4 +61,6 @@ def inicializaBusquedaHaz(anchuraHaz, tamMemoria, tipoProblema, estadoInicial):
     """"El primer bloque a explorar solo lleva el estado incial"""
     Binicial=[]
     Binicial.append(estadoInicial)
-    return busquedaHaz(anchuraHaz, tamMemoria, None, problema, Binicial, 0)
+    return busquedaHaz(anchuraHaz, tamMemoria, [], problema, Binicial, 0)
+
+#print(inicializaBusquedaHaz(anchuraHaz, tamMemoria, tipoProblema, estadoInicial))
