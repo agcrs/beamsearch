@@ -21,7 +21,7 @@ class N_Crepes(Problema):
         """"Añadimos a la tupla con los k elementos invertidos con el resto"""
         return estadoKInvertido+estado[accion+1::]
 
-
+"""
 #Ejemplos que se pueden ejecutar una vez se ha definido la clase:
 p8p_1 = N_Crepes((1, 2, 3, 4, 5, 6, 7, 8,9,10,11,12,13,14,15))
 print(p8p_1.estado_inicial)
@@ -36,3 +36,4 @@ print(p8p_1.aplica(p8p_1.estado_inicial,accionesAplicables[7]))
 # (2, 8, 3, 1, 0, 4, 7, 6, 5)
 print(p8p_1.coste_de_aplicar_accion(p8p_1.estado_inicial,"Mover hueco arriba"))
 # 1
+"""

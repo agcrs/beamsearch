@@ -12,21 +12,20 @@ def busquedaHaz(anchuraHaz,tamMemoria,memoria, problema, bloqueEstadosActual, co
     for estado in bloqueEstadosActual:
         accionesAplicables = problema.acciones(estado)
         for accion in accionesAplicables:
-            estadoGenerado=problema.aplica(estado)
+            estadoGenerado=problema.aplica(estado, accion)
             """"Preguntar en  tutoria si eso es asi, es decir si el estado esta en memoria no se añade a sucesores"""
-            if not(memoria.contains(estadoGenerado)):
+            if (not(estadoGenerado in memoria) and not (estadoGenerado in estadosSucesores)):
                 estadosSucesores.append(estadoGenerado)
 
             """Comprobamos si los nuevos estados generados son estado final"""
-            if(problema.estado_final(estadoGenerado)):
-                return coste
+            if(problema.es_estado_final(list(estadoGenerado))):
+                return "Se ha encontrado el estado final: "+ str(list(estadoGenerado)) + " con coste del algoritmo: "+str(coste)
 
     """"Ordenamos por heuristica"""
     if(type(problema) is N_Crepes):
-        estadosSucesores=sorted(estadosSucesores, key=heuristicaGap)
+        estadosSucesores=sorted(estadosSucesores, key=comparatorGap(heuristicaGap))
     else:
-        estadosSucesores=sorted(estadosSucesores, key=heuristicaManhattan)
-
+        estadosSucesores=sorted(estadosSucesores, key=comparatorManhattan(heuristicaManhattan,problema.longitudFila))
 
     """"Dividimos todos los estados sucesores en B bloques en funcion de la anchura del haz"""
     estadosSucesoresEnBloques = [estadosSucesores[i:i + anchuraHaz] for i in range(0, len(estadosSucesores), anchuraHaz)]
@@ -63,4 +62,8 @@ def inicializaBusquedaHaz(anchuraHaz, tamMemoria, tipoProblema, estadoInicial):
     Binicial.append(estadoInicial)
     return busquedaHaz(anchuraHaz, tamMemoria, [], problema, Binicial, 0)
 
-#print(inicializaBusquedaHaz(anchuraHaz, tamMemoria, tipoProblema, estadoInicial))
+
+
+
+print(inicializaBusquedaHaz(2, 100, 'N-Puzzle', ( 7, 8, 0, 1, 2, 3, 4, 5, 6)))
+#print(inicializaBusquedaHaz(2, 100, 'N-Puzzle', (1, 2, 0, 3, 4, 5, 6, 7, 8)))

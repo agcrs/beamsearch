@@ -13,12 +13,12 @@ def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bloqueEst
     for estado in bloqueEstadosActual:
         accionesAplicables = problema.acciones(estado)
         for accion in accionesAplicables:
-            estadoGenerado = problema.aplica(estado)
-            if not (memoria.contains(estadoGenerado)):
+            estadoGenerado = problema.aplica(estado,accion)
+            if (not(estadoGenerado in memoria)):
                 estadosSucesores.append(estadoGenerado)
 
             """Comprobamos si los nuevos estados generados son estado final"""
-            if (problema.estado_final(estadoGenerado)):
+            if (problema.es_estado_final(estadoGenerado)):
                 return coste
 
     """Pendiente de preguntar en tutoria y pendiente de pensar en backtracking como debe de funcionar"""
