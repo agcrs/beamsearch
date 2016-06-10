@@ -1,5 +1,3 @@
-import itertools
-
 from N_Crepes import *
 from N_Puzzle import *
 from Utilidades import *
@@ -14,6 +12,7 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
     tamMemoria = tamMem
     memoria = []
     estadosSucesores = []
+    costeInicial = 0
     """"bloqueEstadosActual es la B actual que estamos visitando incialmente solo el estado inicial"""
     bloqueEstadosActual = [estadoInicial]
 
@@ -30,7 +29,6 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
     #Algoritmo recursivo que llamaremos desde estee propio metodo
     def busquedaHaz(problema, coste):
         """Todos los estados que van a generarse apartir del bloque actual que estamos visitando"""
-
         global estadosSucesores
         global bloqueEstadosActual
 
@@ -51,6 +49,11 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
                     return "Se ha encontrado el estado final: " + str(
                         list(estadoGenerado)) + " con coste del algoritmo: " + str(coste)
 
+        """Si no ha encontrado estado final y hemos llenado la memoria lanzamos una excepcion"""
+        if (len(memoria) == tamMemoria):
+            raise Exception(
+                'El tamaño de la memoria:+ ' + str(tamMemoria) + ' ha llegado a su limite no caben mas bloques B.')
+
         """"Ordenamos por heuristica"""
         if (type(problema) is N_Crepes):
             estadosSucesores = sorted(estadosSucesores, key=comparatorGap(heuristicaGap))
@@ -65,7 +68,7 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
         """"Cogemos el primer bloque ya que en este algoritmo sin backtracking siempre se explorará el primero"""
         bSiguienteAExplorar = estadosSucesoresEnBloques[0]
 
-        """Limpiamos los sucesores de la memoria"""
+        """Limpiamos los sucesores de la anterior iteracion"""
         estadosSucesores = []
 
 
@@ -79,10 +82,6 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
         """Lo ponemos en memoria en memoria"""
         memoria.append(bSiguienteAExplorar)
 
-        if (len(memoria) > tamMemoria):
-            raise Exception(
-                'El tamaño de la memoria:+ ' + str(tamMemoria) + ' ha llegado a su limite no caben mas bloques B.')
-
         print(bSiguienteAExplorar)
 
         bloqueEstadosActual = bSiguienteAExplorar
@@ -90,7 +89,7 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
         return busquedaHaz(problema, coste + 1)
 
     """Iniciamos el algortimo recursivo de busqueda"""
-    return busquedaHaz(problema, 0)
+    return busquedaHaz(problema, costeInicial)
 
 
 
@@ -102,4 +101,7 @@ TipoProblema='N-Puzzle' #dos tipos: N-Puzzle o N-Crepes
 estadoInicial=(8, 7, 6, 5, 4, 3, 2, 1, 0)
 
 
-print(inicializaBusquedaHaz(20, 1000, 'N-Puzzle', (8, 7, 6, 5, 4, 3, 2, 1, 0)))
+#siempre que la memoria sea inferior al coste que nos retorna el algoritmo petara por llenar la memoria
+print(inicializaBusquedaHaz(20, 33, 'N-Puzzle', (8, 7, 6, 5, 4, 3, 2, 1, 0)))
+
+
