@@ -7,14 +7,20 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
     """"Preparamos los datos para la llamada la algoritmo de busqueda"""
     problema=None
     global estadosSucesores
-    global bloqueEstadosActual
+    global bAExplorar
     anchuraHaz = anchHaz
     tamMemoria = tamMem
     memoria = []
     estadosSucesores = []
     costeInicial = 0
-    """"bloqueEstadosActual es la B actual que estamos visitando incialmente solo el estado inicial"""
-    bloqueEstadosActual = [estadoInicial]
+    """"bAExplorar es la B actual que estamos visitando incialmente solo el estado inicial"""
+    bAExplorar = [estadoInicial]
+
+    """Metemos el estado inicial en una lista en memoria, es irrelevante puesto que aqui no hay backtraking,
+      pero para igualar el tamaño de la memoria  y las iteraciones del algoritmo de backtracking debemos hacerlo,
+      ya que en el de backtracking si debemos meterlo en la memoria"""
+    aux = [estadoInicial]
+    memoria.append(aux)
 
 
     #elegimos entre los dos tipos de problemas
@@ -30,10 +36,13 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
     def busquedaHaz(problema, coste):
         """Todos los estados que van a generarse apartir del bloque actual que estamos visitando"""
         global estadosSucesores
-        global bloqueEstadosActual
+        global bAExplorar
+
+        """Limpiamos los sucesores de la anterior iteracion"""
+        estadosSucesores = []
 
         """si es la primera vez que se llama tenemos un solo estado-> el inicial en los bloques acutales"""
-        for estado in bloqueEstadosActual:
+        for estado in bAExplorar:
             accionesAplicables = problema.acciones(estado)
             for accion in accionesAplicables:
                 estadoGenerado = problema.aplica(estado, accion)
@@ -52,7 +61,7 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
         """Si no ha encontrado estado final y hemos llenado la memoria lanzamos una excepcion"""
         if (len(memoria) == tamMemoria):
             raise Exception(
-                'El tamaño de la memoria:+ ' + str(tamMemoria) + ' ha llegado a su limite no caben mas bloques B.')
+                'El tamaño de la memoria: ' + str(tamMemoria) + ' ha llegado a su limite no caben mas bloques B.')
 
         """"Ordenamos por heuristica"""
         if (type(problema) is N_Crepes):
@@ -66,25 +75,21 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
                                      range(0, len(estadosSucesores), anchuraHaz)]
 
         """"Cogemos el primer bloque ya que en este algoritmo sin backtracking siempre se explorará el primero"""
-        bSiguienteAExplorar = estadosSucesoresEnBloques[0]
-
-        """Limpiamos los sucesores de la anterior iteracion"""
-        estadosSucesores = []
+        bAExplorar = estadosSucesoresEnBloques[0]
 
 
         #He quitado el limite del haz porque sino es una mierda a veces solo tiene pocas acciones aplicable o la primera vez que inicia a lo sumo tiene 4
         """Pendiente de preguntar en tutoria
-        if (len(bSiguienteAExplorar) < anchuraHaz):
+        if (len(bAExplorar) < anchuraHaz):
             # En este caso debemos lanzar error en la aplicacion
             raise Exception('La generacion de sucesores no ha completado el tamaño del bloque B = ' + str(anchuraHaz))
         """
 
         """Lo ponemos en memoria en memoria"""
-        memoria.append(bSiguienteAExplorar)
+        memoria.append(bAExplorar)
 
-        print(bSiguienteAExplorar)
+        print(bAExplorar)
 
-        bloqueEstadosActual = bSiguienteAExplorar
         """"Llamamos recursivamente"""
         return busquedaHaz(problema, coste + 1)
 
@@ -94,14 +99,15 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
 
 
 
-"""Aqui inicializamos el problema que vamos a probar"""
+"""Aqui inicializamos los datos del problema que vamos a probar"""
 anchoDelHaz=20
-tamDeMemoria=100
-TipoProblema='N-Puzzle' #dos tipos: N-Puzzle o N-Crepes
+tamDeMemoria=34 #siempre que la memoria sea <= al coste que nos retorna el algoritmo petara por llenar la memoria
+tipoProblema='N-Puzzle' #dos tipos: N-Puzzle o N-Crepes
 estadoInicial=(8, 7, 6, 5, 4, 3, 2, 1, 0)
 
+#tener en cuenta que este algoritmo no estamos metiendo en memoria el estado inicial puesto que es irrelevante porque no lo necesitaremos en el backtracking ya que no hjay en este algoritmo
+#en el de backtraking si metemos el incial puesto que podemos llegar a el con backtracking entonces o esto se le comenta al profesor o para que se pueda comparar la capacidad de las memoria deberiamos meterlo aqui tambien
+print(inicializaBusquedaHaz(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
 
-#siempre que la memoria sea inferior al coste que nos retorna el algoritmo petara por llenar la memoria
-print(inicializaBusquedaHaz(20, 33, 'N-Puzzle', (8, 7, 6, 5, 4, 3, 2, 1, 0)))
 
 
