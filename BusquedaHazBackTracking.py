@@ -1,87 +1,40 @@
+import time
+
 from N_Crepes import *
 from N_Puzzle import *
 from Utilidades import *
-import sys
 
-"""Metodo para inicializar la recursividad nos valdra para compartir variables y no tener que meterlas en la ram en cada recursion"""
-
-
-def inicializaBusquedaHazBacktracking(anchHaz, tamMem, tipoProblema, estadoInicial):
-    """"Preparamos los datos para la llamada la algoritmo de busqueda"""
-    problema = None
-    global estadosSucesores
+"""Metodo llamado desde el metodo busquedaHazBacktracking en el caso que se deba hacer backTracking"""
+def aplicaBacktracking(memoria, bASeleccionarDict):
+    global coste
     global bAExplorar
-    global bASeleccionarDict
-    global nivelSiguienteAExplorar
-    global accionesAplicables
-    global estadoGenerado
-    global memoriaAplanada
-    global estadosSucesoresEnBloques
-    global problema
+    memoria.pop()  # borramos de la memoria el ultimo bloque explorado
 
-    anchuraHaz = anchHaz
-    tamMemoria = tamMem
-    memoria = []
-    estadosSucesores = []
-    costeInicial = 0
+    """"El bloque B de estados a analizar es en este caso el ultimo almacenado en la memoria tras haber borrado
+        el que estabamos visitando, no hay que ordenarlos por heuristica ni nada porque en la memoria ya se introducen ordenados"""
+    bAExplorar = memoria[len(memoria) - 1]
 
-    # El estado inicial lo ponemos en la memoria por si hay que volver atras para generar sucesores con el backtraking
-    aux = [estadoInicial]
-    memoria.append(aux)
+    """"Llamamos recursivamente Con el B anterior almacenado pero habra que indicar que de sus sucesores no coja el primer bloque B sino el que le toque debido al backtraking"""
+    nivelSiguienteAExplorar = len(memoria)
+    bASeleccionarDict[nivelSiguienteAExplorar] = bASeleccionarDict[nivelSiguienteAExplorar] + 1
 
-    """"Problema realmente es saber que B debe seleccionar en cada momento, yo pienso que lo mejor es un diccionaria que tenga como clave cada nivel y como valor el b para ese nivel que debe seleccionar"""
-    bASeleccionarDict = dict()
-    bASeleccionarDict[1] = 0  # es decir para el nivel 1 (el que surge de explorar el estado inicial) tenemos que se va explorar incialmente el primer bloque b
+    """Cada vez que subimos con backtraking un nivel debemos indicar que los niveles de abajo vuelva a buscar a partir del bloque 0"""
+    for i in range(nivelSiguienteAExplorar + 1, len(bASeleccionarDict) + 1):
+        bASeleccionarDict[i] = 0
 
-    """"bAExplorar es la B actual que estamos visitando incialmente solo el estado inicial"""
-    bAExplorar = [estadoInicial]
-
-    # elegimos entre los dos tipos de problemas
-    if (tipoProblema == 'N-Crepes'):
-        problema = N_Crepes(estadoInicial)
-
-    elif (tipoProblema == 'N-Puzzle'):
-        problema = N_Puzzle(estadoInicial)
+    print("Hacemos backtraking debido a que se han explorado todos los sucesores del nivel: " + str(
+        nivelSiguienteAExplorar) + str(bAExplorar))
+    coste -= 1
 
 
+def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASeleccionarDict):
+    global bAExplorar
+    global coste
+    tiempoInicio=time.clock()
 
-    """Metodo llamado desde el metodo busquedaHazBacktracking en el caso que se deba hacer backTracking"""
-    def llamadaRecursivaConBacktracking(coste):
-        global bAExplorar
-        global bASeleccionarDict
-        global nivelSiguienteAExplorar
-
-        memoria.pop() #borramos de la memoria el ultimo bloque explorado
-
-        """"El bloque B de estados a analizar es en este caso el ultimo almacenado en la memoria tras haber borrado
-            el que estabamos visitando, no hay que ordenarlos por heuristica ni nada porque en la memoria ya se introducen ordenados"""
-        bAExplorar = memoria[len(memoria) - 1]
-
-        """"Llamamos recursivamente Con el B anterior almacenado pero habra que indicar que de sus sucesores no coja el primer bloque B sino el que le toque debido al backtraking"""
-        nivelSiguienteAExplorar = len(memoria)
-        bASeleccionarDict[nivelSiguienteAExplorar] = bASeleccionarDict[nivelSiguienteAExplorar] + 1
-
-        """Cada vez que subimos con backtraking un nivel debemos indicar que los niveles de abajo vuelva a buscar a partir del bloque 0"""
-        for i in range(nivelSiguienteAExplorar + 1, len(bASeleccionarDict) + 1):
-            bASeleccionarDict[i] = 0
-
-        print("Hacemos backtraking debido a que se han explorado todos los sucesores del nivel: " + str(nivelSiguienteAExplorar) + str(bAExplorar))
-        return busquedaHazBacktracking(coste - 1)
-
-
-    def busquedaHazBacktracking(coste):
-        """Todos los estados que van a generarse apartir del bloque actual que estamos visitando"""
-        global estadosSucesores
-        global bAExplorar
-        global bASeleccionarDict
-        global nivelSiguienteAExplorar
-        global accionesAplicables
-        global estadoGenerado
-        global memoriaAplanada
-        global estadosSucesoresEnBloques
-        global problema
-
+    while (1):
         """Limpiamos los sucesores de la anterior iteracion"""
+        #Todos los estados que van a generarse apartir del bloque actual B que estamos visitando
         estadosSucesores = []
 
         """si es la primera vez que se llama tenemos un solo estado-> el inicial en los bloques acutales"""
@@ -96,20 +49,23 @@ def inicializaBusquedaHazBacktracking(anchHaz, tamMem, tipoProblema, estadoInici
                 if (not (estadoGenerado in memoriaAplanada) and not (estadoGenerado in estadosSucesores)):
                     estadosSucesores.append(estadoGenerado)
 
-                """Comprobamos si los nuevos estados generados son estado final"""
+                """Comprobamos si alguno de los nuevos estados generados son final"""
                 if (problema.es_estado_final(list(estadoGenerado))):
-                    return "Se ha encontrado el estado final: " + str(
-                        list(estadoGenerado)) + " con coste del algoritmo: " + str(coste)
+                    tiempoFinal = time.clock()
+
+                    return "\nSe ha encontrado el estado final: " + str(
+                        list(estadoGenerado)) + " con coste del algoritmo: " + str(coste)+"\nEl tiempo de ejecución ha sido: " + str(tiempoFinal-tiempoInicio) +  " segundos."
 
         # No hacemos restriccion di los estados generados no completan la anchura del haz, seguimos con los que haya en el haz
 
-        """Comprobamos si la memoria ya esta llena"""
+        """Comprobamos si la memoria esta llena"""
         if (len(memoria) == tamMemoria):
             if (tamMemoria <= 1):
                 raise Exception(
                     'Si se elige 0 o 1 de tamaño de memoria solo puede almacenarse a lo sumo el estado incial, y no podemos continuar el algoritmo')
 
-            llamadaRecursivaConBacktracking(coste)
+            aplicaBacktracking(memoria, bASeleccionarDict)
+            continue
 
         else:
             """"Ordenamos por heuristica"""
@@ -123,20 +79,20 @@ def inicializaBusquedaHazBacktracking(anchHaz, tamMem, tipoProblema, estadoInici
             estadosSucesoresEnBloques = [estadosSucesores[i:i + anchuraHaz] for i in
                                          range(0, len(estadosSucesores), anchuraHaz)]
 
-            """"Vemos que haya un bloque B con indice que nos toca buscar con el backtraking en los sucesores si se han acabado hay que subir un nivel como cuando la memoria esta llena"""
+            """"Vemos que haya un bloque B con indice que nos toca buscar con el backtraking en los sucesores, si se han acabado hay que subir un nivel como cuando la memoria esta llena"""
             if (len(estadosSucesoresEnBloques) <= bASeleccionarDict[len(memoria)]):
                 if (len(memoria) <= 1):
                     raise Exception(
                         'Mediante el backtraking hemos llegado al estado inicial sin encontrar solucion en ninguno de sus estados sucesores ')
-
-                llamadaRecursivaConBacktracking(coste)
+                aplicaBacktracking(memoria, bASeleccionarDict)
+                continue
 
             else:
                 bAExplorar = estadosSucesoresEnBloques[bASeleccionarDict[len(memoria)]]
 
             # si no cumple el tamaño del haz no pasa nada se explora lo que haya dentro
 
-            """El B que usamos es el indicado por el algoritmo siempre sera el primero hasta que se llene la memoria y volvamos al de atras y haya que coger otro"""
+            """El B que usamos es el indicado por el algoritmo siempre sera el primero hasta que haya backtracking y haya que coger otro"""
             memoria.append(bAExplorar)
 
             """Si es la primera vez que se llega a un nivel nuevo se indica que la b siguiente a buscar es la pimera"""
@@ -144,23 +100,48 @@ def inicializaBusquedaHazBacktracking(anchHaz, tamMem, tipoProblema, estadoInici
                 bASeleccionarDict[len(memoria)] = 0
 
             print(bAExplorar)
-            """"Llamamos recursivamente"""
-            return busquedaHazBacktracking(coste + 1)
+            coste += 1
 
 
 
 
-    """Iniciamos el algortimo recursivo de busqueda"""
-    return busquedaHazBacktracking(costeInicial)
+""" Metodo para inicializar la busqueda iterativa """
+def inicializaBusquedaHazBacktracking(anchuraHaz, tamMemoria, tipoProblema, estadoInicial):
+    global bAExplorar
+    global coste
+    problema = None
+    """ El estado inicial lo ponemos en la memoria por si hay que volver atras para generar sucesores con el backtraking """
+    memoria = []
+    aux = [estadoInicial]
+    memoria.append(aux)
+
+    """" El coste inicial del algoritmo es 0"""
+    coste = 0
+
+    """" Para saber que B debe seleccionar en cada nivel, usaremos un diccionario que tenga como clave el nivel y como valor el b para ese nivel que debe seleccionar """
+    bASeleccionarDict = dict()
+    # Es decir para el nivel 1 (el que surge de explorar el estado inicial) tenemos que se va explorar incialmente el primer bloque b
+    bASeleccionarDict[1] = 0
+
+    """" bAExplorar es la B actual que estamos visitando incialmente solo el estado inicial """
+    bAExplorar = [estadoInicial]
+
+    """ Elegimos entre los dos tipos de problemas """
+    if (tipoProblema == 'N-Crepes'):
+        problema = N_Crepes(estadoInicial)
+
+    elif (tipoProblema == 'N-Puzzle'):
+        problema = N_Puzzle(estadoInicial)
+
+    """ Iniciamos el algortimo iterativo de busqueda """
+    return busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASeleccionarDict)
 
 
 # Iniciamos el problema declarando los datos
-"""Aqui inicializamos el problema que vamos a probar"""
+""" Aqui inicializamos el problema que vamos a probar """
 anchoDelHaz = 20
 tamDeMemoria = 33
 tipoProblema = 'N-Puzzle'  # dos tipos: N-Puzzle o N-Crepes
 estadoInicial = (8, 7, 6, 5, 4, 3, 2, 1, 0)
-
-sys.setrecursionlimit(15000)
 
 print(inicializaBusquedaHazBacktracking(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))

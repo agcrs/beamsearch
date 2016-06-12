@@ -1,11 +1,13 @@
+import time
+
 from N_Crepes import *
 from N_Puzzle import *
 from Utilidades import *
 
-"""Metodo para inicializar la recursividad nos valdra para compartir variables y no tener que meterlas en la ram en cada recursion"""
+"""Metodo para inicializar la busqueda nos valdra para compartir variables y no tener que meterlas en la ram en cada recursion"""
 def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
     """"Preparamos los datos para la llamada la algoritmo de busqueda"""
-    problema=None
+    problema = None
     global estadosSucesores
     global bAExplorar
     anchuraHaz = anchHaz
@@ -32,68 +34,66 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
 
 
 
-    #Algoritmo recursivo que llamaremos desde estee propio metodo
+    #Algoritmo iterativo
     def busquedaHaz(problema, coste):
         """Todos los estados que van a generarse apartir del bloque actual que estamos visitando"""
         global estadosSucesores
         global bAExplorar
+        tiempoInicio = time.clock()
 
-        """Limpiamos los sucesores de la anterior iteracion"""
-        estadosSucesores = []
+        while(1):
+            """Limpiamos los sucesores de la anterior iteracion"""
+            estadosSucesores = []
 
-        """si es la primera vez que se llama tenemos un solo estado-> el inicial en los bloques acutales"""
-        for estado in bAExplorar:
-            accionesAplicables = problema.acciones(estado)
-            for accion in accionesAplicables:
-                estadoGenerado = problema.aplica(estado, accion)
+            """si es la primera vez que se llama tenemos un solo estado-> el inicial en los bloques acutales"""
+            for estado in bAExplorar:
+                accionesAplicables = problema.acciones(estado)
+                for accion in accionesAplicables:
+                    estadoGenerado = problema.aplica(estado, accion)
 
-                """"Preguntar en  tutoria si eso es asi, es decir si el estado esta en memoria no se añade a sucesores"""
-                # Aplanamos todos los estados contenidos en cada bloque de la memoria para comprobar si esta contenido el estado observado actual en algun bloque
-                memoriaAplanada = sum(memoria, [])
-                if (not (estadoGenerado in memoriaAplanada) and not (estadoGenerado in estadosSucesores)):
-                    estadosSucesores.append(estadoGenerado)
+                    """"Preguntar en  tutoria si eso es asi, es decir si el estado esta en memoria no se añade a sucesores"""
+                    # Aplanamos todos los estados contenidos en cada bloque de la memoria para comprobar si esta contenido el estado observado actual en algun bloque
+                    memoriaAplanada = sum(memoria, [])
+                    if (not (estadoGenerado in memoriaAplanada) and not (estadoGenerado in estadosSucesores)):
+                        estadosSucesores.append(estadoGenerado)
 
-                """Comprobamos si los nuevos estados generados son estado final"""
-                if (problema.es_estado_final(list(estadoGenerado))):
-                    return "Se ha encontrado el estado final: " + str(
-                        list(estadoGenerado)) + " con coste del algoritmo: " + str(coste)
+                    """Comprobamos si los nuevos estados generados son estado final"""
+                    if (problema.es_estado_final(list(estadoGenerado))):
+                        tiempoFinal = time.clock()
 
-        """Si no ha encontrado estado final y hemos llenado la memoria lanzamos una excepcion"""
-        if (len(memoria) == tamMemoria):
-            raise Exception(
-                'El tamaño de la memoria: ' + str(tamMemoria) + ' ha llegado a su limite no caben mas bloques B.')
-
-        """"Ordenamos por heuristica"""
-        if (type(problema) is N_Crepes):
-            estadosSucesores = sorted(estadosSucesores, key=comparatorGap(heuristicaGap))
-        else:
-            estadosSucesores = sorted(estadosSucesores,
-                                      key=comparatorManhattan(heuristicaManhattan, problema.longitudFila))
-
-        """"Dividimos todos los estados sucesores en B bloques en funcion de la anchura del haz"""
-        estadosSucesoresEnBloques = [estadosSucesores[i:i + anchuraHaz] for i in
-                                     range(0, len(estadosSucesores), anchuraHaz)]
-
-        """"Cogemos el primer bloque ya que en este algoritmo sin backtracking siempre se explorará el primero"""
-        bAExplorar = estadosSucesoresEnBloques[0]
+                        return "\nSe ha encontrado el estado final: " + str(list(estadoGenerado)) + " con coste del algoritmo: " + \
+                               str(coste) + "\nEl tiempo de ejecución ha sido: " + str(tiempoFinal - tiempoInicio) + " segundos."
 
 
-        #He quitado el limite del haz porque sino es una mierda a veces solo tiene pocas acciones aplicable o la primera vez que inicia a lo sumo tiene 4
-        """Pendiente de preguntar en tutoria
-        if (len(bAExplorar) < anchuraHaz):
-            # En este caso debemos lanzar error en la aplicacion
-            raise Exception('La generacion de sucesores no ha completado el tamaño del bloque B = ' + str(anchuraHaz))
-        """
 
-        """Lo ponemos en memoria en memoria"""
-        memoria.append(bAExplorar)
+            """Si no ha encontrado estado final y hemos llenado la memoria lanzamos una excepcion"""
+            if (len(memoria) == tamMemoria):
+                raise Exception(
+                    'El tamaño de la memoria: ' + str(tamMemoria) + ' ha llegado a su limite no caben mas bloques B.')
 
-        print(bAExplorar)
+            """"Ordenamos por heuristica"""
+            if (type(problema) is N_Crepes):
+                estadosSucesores = sorted(estadosSucesores, key=comparatorGap(heuristicaGap))
+            else:
+                estadosSucesores = sorted(estadosSucesores,
+                                          key=comparatorManhattan(heuristicaManhattan, problema.longitudFila))
 
-        """"Llamamos recursivamente"""
-        return busquedaHaz(problema, coste + 1)
+            """"Dividimos todos los estados sucesores en B bloques en funcion de la anchura del haz"""
+            estadosSucesoresEnBloques = [estadosSucesores[i:i + anchuraHaz] for i in
+                                         range(0, len(estadosSucesores), anchuraHaz)]
 
-    """Iniciamos el algortimo recursivo de busqueda"""
+            """"Cogemos el primer bloque ya que en este algoritmo sin backtracking siempre se explorará el primero"""
+            bAExplorar = estadosSucesoresEnBloques[0]
+
+
+            """Lo ponemos en memoria en memoria"""
+            memoria.append(bAExplorar)
+
+            print(bAExplorar)
+
+            coste+=1
+
+    """Iniciamos el algortimo iterativo de busqueda"""
     return busquedaHaz(problema, costeInicial)
 
 
