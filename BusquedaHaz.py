@@ -1,5 +1,5 @@
-import random
 import time
+import random
 from N_Crepes import *
 from N_Puzzle import *
 from Utilidades import *
@@ -18,10 +18,11 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
     """"bAExplorar es la B actual que estamos visitando incialmente solo el estado inicial"""
     bAExplorar = [estadoInicial]
 
-    """Metemos el estado inicial en memoria, es irrelevante puesto que aqui no hay backtraking,
+    """Metemos el estado inicial en una lista en memoria, es irrelevante puesto que aqui no hay backtraking,
       pero para igualar el tamaño de la memoria  y las iteraciones del algoritmo de backtracking debemos hacerlo,
       ya que en el de backtracking si debemos meterlo en la memoria"""
-    memoria.append(estadoInicial)
+    aux = [estadoInicial]
+    memoria.append(aux)
 
 
     #elegimos entre los dos tipos de problemas
@@ -44,14 +45,17 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
             """Limpiamos los sucesores de la anterior iteracion"""
             estadosSucesores = []
 
+            # Aplanamos todos los estados contenidos en cada bloque de la memoria para comprobar si esta contenido el estado observado actual en algun bloque
+            memoriaAplanada = sum(memoria, [])
+
             """si es la primera vez que se llama tenemos un solo estado-> el inicial en los bloques acutales"""
             for estado in bAExplorar:
                 accionesAplicables = problema.acciones(estado)
                 for accion in accionesAplicables:
                     estadoGenerado = problema.aplica(estado, accion)
 
-                    """"Preguntar en  tutoria si eso es asi, es decir si el estado esta en memoria no se añade a sucesores"""
-                    if (not (estadoGenerado in memoria) and not (estadoGenerado in estadosSucesores)):
+
+                    if (not (estadoGenerado in memoriaAplanada) and not (estadoGenerado in estadosSucesores)):
                         estadosSucesores.append(estadoGenerado)
 
                     """Comprobamos si los nuevos estados generados son estado final"""
@@ -61,16 +65,6 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
                         return "\nSe ha encontrado el estado final: " + str(list(estadoGenerado)) + " con coste del algoritmo: " + \
                                str(coste) + "\nEl tiempo de ejecución ha sido: " + str(tiempoFinal - tiempoInicio) + " segundos."
 
-
-
-            """Si no ha encontrado estado final y hemos llenado la memoria lanzamos una excepcion"""
-            if (len(memoria) >= tamMemoria):
-                #raise Exception(
-                #    'El tamaño de la memoria: ' + str(tamMemoria) + ' ha llegado a su limite no caben mas bloques B.')
-                tiempoFinal = time.clock()
-
-                return "\nNo se ha podido encontrar un estado final, se ha alcanzado el límite de la memoria: " + \
-                    str(tamMemoria) + "\nEl tiempo de ejecución ha sido: " + str(tiempoFinal - tiempoInicio) + " segundos."
 
             """"Ordenamos por heuristica"""
             if (type(problema) is N_Crepes):
@@ -88,10 +82,16 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
 
 
             """Lo ponemos en memoria en memoria"""
-            for estado in bAExplorar:
-                memoria.append(estado)
+            memoria.append(bAExplorar)
 
-            #print(bAExplorar)
+            # Aplanamos todos los estados contenidos en cada bloque de la memoria para comprobar si esta contenido el estado observado actual en algun bloque
+            memoriaAplanada = sum(memoria, [])
+            """Si hemos llenado la memoria lanzamos una excepcion"""
+            if (len(memoriaAplanada) >= tamMemoria):
+                tiempoFinal = time.clock()
+                return "\nNo se ha podido encontrar un estado final, se ha alcanzado el límite de la memoria: " + \
+                       str(tamMemoria) + "\nEl tiempo de ejecución ha sido: " + str(
+                    tiempoFinal - tiempoInicio) + " segundos."
 
             coste+=1
 
@@ -100,15 +100,22 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
 
 
 
+"""Aqui inicializamos los datos del problema que vamos a probar"""
+anchoDelHaz=100
+tamDeMemoria=3000 #siempre que la memoria sea <= al coste que nos retorna el algoritmo petara por llenar la memoria
+tipoProblema='N-Puzzle' #dos tipos: N-Puzzle o N-Crepes
 
-# """Aqui inicializamos los datos del problema que vamos a probar"""
-# anchoDelHaz=100
-# tamDeMemoria=3000 #siempre que la memoria sea <= al coste que nos retorna el algoritmo petara por llenar la memoria
-# tipoProblema='N-Puzzle' #dos tipos: N-Puzzle o N-Crepes
-# estadoInicial=(8, 7, 6, 5, 4, 3, 2, 1, 0)
-#
-# # tener en cuenta que este algoritmo no estamos metiendo en memoria el estado inicial puesto que es irrelevante porque no lo necesitaremos en el backtracking ya que no hjay en este algoritmo
-# # en el de backtraking si metemos el incial puesto que podemos llegar a el con backtracking entonces o esto se le comenta al profesor o para que se pueda comparar la capacidad de las memoria deberiamos meterlo aqui tambien
-# print(inicializaBusquedaHaz(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
+random.seed(20152016) #Establecemos semilla
+
+for x in range(0, 100): #Generamos los 100 problemas y los ejecutamos
+    estadoInicial = tuple(random.sample(range(0,9), 9)) #Devuelve una lista única de 9 elementos elegidos de entre la secuencia de población.
+
+    print("    ")
+    print("||------ Ejecución número " + str(x+1) + "------||")
+    print("||8-Puzzle, estado inicial: " + str(estadoInicial) + "||")
+    print(inicializaBusquedaHaz(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
+    print("||-------------------------------------------------||")
+
+
 
 

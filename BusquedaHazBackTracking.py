@@ -8,7 +8,7 @@ from Utilidades import *
 def aplicaBacktracking(memoria, bASeleccionarDict):
     global coste
     global bAExplorar
-    memoria.pop()  # borramos de la memoria el ultimo bloque explorado
+    memoria.pop()  # borramos el bloque superior para volver a explorar sus sucesores y coger el siguiente
 
     """"El bloque B de estados a analizar es en este caso el ultimo almacenado en la memoria tras haber borrado
         el que estabamos visitando, no hay que ordenarlos por heuristica ni nada porque en la memoria ya se introducen ordenados"""
@@ -33,6 +33,8 @@ def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASelecci
     tiempoInicio=time.clock()
 
     while (1):
+        # Aplanamos todos los estados contenidos en cada bloque de la memoria para comprobar si esta contenido el estado observado actual en algun bloque
+        memoriaAplanada = sum(memoria, [])
         """Limpiamos los sucesores de la anterior iteracion"""
         #Todos los estados que van a generarse apartir del bloque actual B que estamos visitando
         estadosSucesores = []
@@ -43,9 +45,6 @@ def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASelecci
             for accion in accionesAplicables:
                 estadoGenerado = problema.aplica(estado, accion)
 
-                """"Preguntar en  tutoria si eso es asi, es decir si el estado esta en memoria no se añade a sucesores"""
-                # Aplanamos todos los estados contenidos en cada bloque de la memoria para comprobar si esta contenido el estado observado actual en algun bloque
-                memoriaAplanada = sum(memoria, [])
                 if (not (estadoGenerado in memoriaAplanada) and not (estadoGenerado in estadosSucesores)):
                     estadosSucesores.append(estadoGenerado)
 
@@ -56,51 +55,50 @@ def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASelecci
                     return "\nSe ha encontrado el estado final: " + str(
                         list(estadoGenerado)) + " con coste del algoritmo: " + str(coste)+"\nEl tiempo de ejecución ha sido: " + str(tiempoFinal-tiempoInicio) +  " segundos."
 
-        # No hacemos restriccion di los estados generados no completan la anchura del haz, seguimos con los que haya en el haz
+        """"Ordenamos por heuristica"""
+        if (type(problema) is N_Crepes):
+            estadosSucesores = sorted(estadosSucesores, key=comparatorGap(heuristicaGap))
+        else:
+            estadosSucesores = sorted(estadosSucesores,
+                                      key=comparatorManhattan(heuristicaManhattan, problema.longitudFila))
 
-        """Comprobamos si la memoria esta llena"""
-        if (len(memoria) == tamMemoria):
-            if (tamMemoria <= 1):
-                raise Exception(
-                    'Si se elige 0 o 1 de tamaño de memoria solo puede almacenarse a lo sumo el estado incial, y no podemos continuar el algoritmo')
+        """"Dividimos todos los estados sucesores en B bloques en funcion de la anchura del haz"""
+        estadosSucesoresEnBloques = [estadosSucesores[i:i + anchuraHaz] for i in
+                                     range(0, len(estadosSucesores), anchuraHaz)]
+
+        """"Vemos que haya un bloque B con indice que nos toca buscar con el backtraking en los sucesores, si se han acabado hay que subir un nivel como cuando la memoria esta llena"""
+        if (len(estadosSucesoresEnBloques) <= bASeleccionarDict[len(memoria)]):
+            if (len(memoria) <= 1):
+                tiempoFinal = time.clock()
+                return "\nNo se ha podido encontrar un estado final, se ha llegado al estado incial con backtraking habiendo explorado todos los niveles hasta completar la memoria: " + \
+                       str(tamMemoria) + "\nEl tiempo de ejecución ha sido: " + str(
+                    tiempoFinal - tiempoInicio) + " segundos."
 
             aplicaBacktracking(memoria, bASeleccionarDict)
             continue
 
         else:
-            """"Ordenamos por heuristica"""
-            if (type(problema) is N_Crepes):
-                estadosSucesores = sorted(estadosSucesores, key=comparatorGap(heuristicaGap))
-            else:
-                estadosSucesores = sorted(estadosSucesores,
-                                          key=comparatorManhattan(heuristicaManhattan, problema.longitudFila))
+            bAExplorar = estadosSucesoresEnBloques[bASeleccionarDict[len(memoria)]]
 
-            """"Dividimos todos los estados sucesores en B bloques en funcion de la anchura del haz"""
-            estadosSucesoresEnBloques = [estadosSucesores[i:i + anchuraHaz] for i in
-                                         range(0, len(estadosSucesores), anchuraHaz)]
+        # si no cumple el tamaño del haz no pasa nada se explora lo que haya dentro
 
-            """"Vemos que haya un bloque B con indice que nos toca buscar con el backtraking en los sucesores, si se han acabado hay que subir un nivel como cuando la memoria esta llena"""
-            if (len(estadosSucesoresEnBloques) <= bASeleccionarDict[len(memoria)]):
-                if (len(memoria) <= 1):
-                    raise Exception(
-                        'Mediante el backtraking hemos llegado al estado inicial sin encontrar solucion en ninguno de sus estados sucesores ')
-                aplicaBacktracking(memoria, bASeleccionarDict)
-                continue
+        """El B que usamos es el indicado por el algoritmo siempre sera el primero hasta que haya backtracking y haya que coger otro"""
+        memoria.append(bAExplorar)
 
-            else:
-                bAExplorar = estadosSucesoresEnBloques[bASeleccionarDict[len(memoria)]]
+        memoriaAplanada = sum(memoria, [])
+        """Comprobamos si la memoria esta llena"""
+        if (len(memoriaAplanada) >= tamMemoria):
+            #en este caso quitamos el nodo que acabamos de insertar puesto que ya no cabe en la memoria
+            memoria.pop()
+            aplicaBacktracking(memoria, bASeleccionarDict)
+            continue
 
-            # si no cumple el tamaño del haz no pasa nada se explora lo que haya dentro
 
-            """El B que usamos es el indicado por el algoritmo siempre sera el primero hasta que haya backtracking y haya que coger otro"""
-            memoria.append(bAExplorar)
+        """Si es la primera vez que se llega a un nivel nuevo se indica que la b siguiente a buscar es la pimera"""
+        if (len(memoria) not in bASeleccionarDict):
+            bASeleccionarDict[len(memoria)] = 0
 
-            """Si es la primera vez que se llega a un nivel nuevo se indica que la b siguiente a buscar es la pimera"""
-            if (len(memoria) not in bASeleccionarDict):
-                bASeleccionarDict[len(memoria)] = 0
-
-            print(bAExplorar)
-            coste += 1
+        coste += 1
 
 
 
@@ -138,10 +136,11 @@ def inicializaBusquedaHazBacktracking(anchuraHaz, tamMemoria, tipoProblema, esta
 
 
 # Iniciamos el problema declarando los datos
+#ese ejemplo de ahi me ha tardado 65 segundos pero lo ha resuelto con backtraking el normal con esas caracteristicas no es capaz de resolverlo
 """ Aqui inicializamos el problema que vamos a probar """
 anchoDelHaz = 20
-tamDeMemoria = 33
+tamDeMemoria = 600
 tipoProblema = 'N-Puzzle'  # dos tipos: N-Puzzle o N-Crepes
-estadoInicial = (8, 7, 6, 5, 4, 3, 2, 1, 0)
+estadoInicial = (8,7,6,5,4,3,2,1,0)
 
 print(inicializaBusquedaHazBacktracking(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
