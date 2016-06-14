@@ -1,0 +1,100 @@
+N-Puzzle
+
+Estado final generado con la función range(), que genera una lista de números
+en sucesión aritmética.
+
+El tamaño n+1 debe tener raiz cuadrada entera. (Está pensado para que funcione
+con 8, 15 y 25).
+
+El tamaño de una fila del problema será math.sqrt(n+1) (la raíz cuadrada).
+
+En las acciones aplicables restringimos si se encuentra en alguno de los bordes.
+
+En el aplica obtenemos la posición del hueco, miramos que acción se va a
+aplicar, obtenemos el valor de la ficha que está donde se va a mover el hueco,
+y actualizamos los valores de la lista para efectuar el cambio.
+
+N-Crepes
+
+El problema se representará por una tupla de números que van desde 1 a N
+desordenados.
+
+En este caso las acciones aplicables estarán representadas por un número que
+puede ir desde 1 a N, indicando que se inviertan ese número de crepes.
+
+El aplica simplemente invierte los K elementos elegidos de la pila.
+
+BEAM SEARCH
+
+La función recibe como parámetros la anchura del haz, el número de nodos que
+se guardarán en memoria, una lista de los nodos que se han guardado en
+la memoria (actua como la memoria), el problema y los estados que tenemos en
+el bloque que se está visitando en este momento.
+
+BEAM SEARCH BACKTRACKING
+
+Utilizamos un diccionario para saber qué bloque debemos explorar a continuación
+cuando se vuelve a atrás con el backtracking. Cada nivel tendrá el número de
+bloque a explorar.
+
+DISTANCIA MANHATTAN N_Puzzle
+
+Por ejemplo, si se quiere resolver el 15-puzle (o juego del 15) en la menor
+cantidad de pasos posible usando A*, es necesario emplear una heurística
+admisible. Hay una larga historia de tales heurísticas para el 15-puzle, aquí
+tenemos dos de las más comúnmente usadas:
+
+Distancia de Hamming: el número de fichas que no están en su lugar.
+Distancia Manhattan: la suma de las distancias desde la posición actual de cada
+ficha hasta su posición original.
+Queda claro que la Distancia de Hamming es admisible, dado que el número total
+de movimientos para ordenar las fichas correctamente es al menos el número de
+fichas que no están en su lugar (si cada ficha no está en su posición original
+deberá ser movida al menos una vez). La Distancia Manhattan también será una
+heurística admisible porque cada ficha será movida el menos la cantidad de
+pasos entre ella misma y su posición original. Considere el siguiente
+rompecabezas:
+
+4	6	3	8
+7	12	9	14
+15	13	1	5
+2	10	11
+la distribución de las distancias Manhattan para cada ficha quedaría así:
+
+3	1	0	1
+2	3	3	4
+3	2	4	4
+4	1	1
+La distancia total de Manhattan para el puzle quedaría:
+
+Para calcular la distancia Manhattan debemos obtener la posición en la que se
+encuentra cada casilla del puzzle y la posición donde debería encontrarse en
+términos de su fila y su columna para poder obtener el número de movimientos
+mínimos que serían necesarios para poner la ficha en su lugar correcto.
+
+La heurística para un estado queda calculada pues por la suma de los desplaza-
+mientos de sus fichas.
+
+Para obtener la fila en la que se encuentra una casilla en concreto se divide
+su índice por el tamaño de la fila y nos quedamos con la parte entera.
+
+Para obtener la columna en la que se encuentra una casilla en concreto hay que
+obtener el módulo del índice donde se encuentra frente a la longitud de las filas
+por la fila en la que se encuentra, con la excepción de las casillas de la
+primera fila, las cuales resultarían en calcular en módulo 0, pero para este
+caso en concreto la columna coincide directamente con el índice donde se
+encuentra.
+
+LANZADOR
+
+Pequeño script con el que generar los problemas a resolver por los algoritmos
+de manera única y aleatoria.
+
+Para ello se usa:
+
+https://docs.python.org/3.4/library/random.html#random.seed
+
+https://docs.python.org/3.4/library/random.html#random.sample
+
+El primero lo usamos para establecer la semilla para que todas las ejecuciones
+usen los mismos ejemplos. El segundo para generarlos.

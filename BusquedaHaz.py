@@ -68,8 +68,12 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
 
             """Si no ha encontrado estado final y hemos llenado la memoria lanzamos una excepcion"""
             if (len(memoria) == tamMemoria):
-                raise Exception(
-                    'El tamaño de la memoria: ' + str(tamMemoria) + ' ha llegado a su limite no caben mas bloques B.')
+                #raise Exception(
+                #    'El tamaño de la memoria: ' + str(tamMemoria) + ' ha llegado a su limite no caben mas bloques B.')
+                tiempoFinal = time.clock()
+
+                return "\nNo se ha podido encontrar un estado final, se ha alcanzado el límite de la memoria: " + \
+                    str(tamMemoria) + "\nEl tiempo de ejecución ha sido: " + str(tiempoFinal - tiempoInicio) + " segundos."
 
             """"Ordenamos por heuristica"""
             if (type(problema) is N_Crepes):
@@ -89,7 +93,7 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
             """Lo ponemos en memoria en memoria"""
             memoria.append(bAExplorar)
 
-            print(bAExplorar)
+            #print(bAExplorar)
 
             coste+=1
 
@@ -100,14 +104,11 @@ def inicializaBusquedaHaz(anchHaz, tamMem, tipoProblema, estadoInicial):
 
 
 """Aqui inicializamos los datos del problema que vamos a probar"""
-anchoDelHaz=20
-tamDeMemoria=34 #siempre que la memoria sea <= al coste que nos retorna el algoritmo petara por llenar la memoria
-tipoProblema='N-Puzzle' #dos tipos: N-Puzzle o N-Crepes
-estadoInicial=(8, 7, 6, 5, 4, 3, 2, 1, 0)
+#anchoDelHaz=20
+#tamDeMemoria=34 #siempre que la memoria sea <= al coste que nos retorna el algoritmo petara por llenar la memoria
+#tipoProblema='N-Puzzle' #dos tipos: N-Puzzle o N-Crepes
+#estadoInicial=(8, 7, 6, 5, 4, 3, 2, 1, 0)
 
 #tener en cuenta que este algoritmo no estamos metiendo en memoria el estado inicial puesto que es irrelevante porque no lo necesitaremos en el backtracking ya que no hjay en este algoritmo
 #en el de backtraking si metemos el incial puesto que podemos llegar a el con backtracking entonces o esto se le comenta al profesor o para que se pueda comparar la capacidad de las memoria deberiamos meterlo aqui tambien
-print(inicializaBusquedaHaz(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
-
-
-
+#print(inicializaBusquedaHaz(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
