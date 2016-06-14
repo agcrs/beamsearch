@@ -37,11 +37,10 @@ def heuristicaManhattan(estado1, estado2, longitudFila):
 
 def obtenerGapEstadoNCrepe(estado):
     gap=0
-    for i in range(len(estado)):
-        if(estado[i]-estado[i+1]>1):
+    for i in range(len(estado)-1):
+        if(abs(estado[i]-estado[i+1])>1):
             gap+=1
     return gap
-
 
 """"Metodo para obtener los gap Asociados a un estado de N-crepes"""
 def heuristicaGap(estado1, estado2):
