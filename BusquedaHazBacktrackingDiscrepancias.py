@@ -21,7 +21,6 @@ def aplicaBacktrackingDiscrepancias(memoria, bASeleccionarDict, memoriaLlena):
             """ El estado inicial lo ponemos en la memoria por si hay que volver atras para generar sucesores con el backtraking """
             memoria = []
             memoria.append(bAExplorar)
-            nivelSiguienteAExplorar = 1
             bASeleccionarDict[1] = [0, 1 , 0]
             """esto se peude ahorrar para discrepencias cero siempre seran 0,0
             for i in range(nivelSiguienteAExplorar + 1, len(bASeleccionarDict) + 1):
@@ -55,9 +54,24 @@ def aplicaBacktrackingDiscrepancias(memoria, bASeleccionarDict, memoriaLlena):
                     break
 
             if not algunoConDiscrepanciaActiva:
-                return "-1"
+                # FIXME: Creo que esto es el final del algoritmo
+
+                #  FIXME: Pienso que si hay discrepancias para cada nivel de memoria y encima ya se han usado, ha terminado el algoritmo
+                if (len(memoria)<=discrepancias):
+                    return "-1"
+                else:
+                    discrepancias += 1
+                    bAExplorar = [estadoInicial]
+                    """Dejamos en la memoria solo con el estado inicial"""
+                    """ El estado inicial lo ponemos en la memoria por si hay que volver atras para generar sucesores con el backtraking """
+                    memoria = []
+                    memoria.append(bAExplorar)
+                    for i in range(1 , discrepancias+1):
+                        bASeleccionarDict[i] = [0, 1, 0]
+                    print(str(bAExplorar) + " con discrepancis:" + str(discrepancias))
 
             bAExplorar = memoria[len(memoria) - 1]
+
 
 
     return memoria
@@ -236,7 +250,6 @@ def busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, proble
             aux[1] = 1
             bASeleccionarDict[len(memoria)] = aux
         """
-        print(bAExplorar)
 
 
 """ Metodo para inicializar la busqueda iterativa """
@@ -273,8 +286,8 @@ def inicializaBusquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, tipoP
 
 # Iniciamos el problema declarando los datos
 """ Aqui inicializamos el problema que vamos a probar """
-anchoDelHaz = 2
-tamDeMemoria = 20
+anchoDelHaz = 10
+tamDeMemoria = 60
 tipoProblema = 'N-Puzzle'  # dos tipos: N-Puzzle o N-Crepes
 estadoInicial = (8, 7, 6, 5, 4, 3, 2, 1, 0)
 

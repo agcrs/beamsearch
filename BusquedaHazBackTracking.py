@@ -70,7 +70,7 @@ def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASelecci
         if (len(estadosSucesoresEnBloques) <= bASeleccionarDict[len(memoria)]):
             if (len(memoria) <= 1):
                 tiempoFinal = time.clock()
-                return "\nNo se ha podido encontrar un estado final, se ha llegado al estado incial con backtraking habiendo explorado todos los niveles hasta completar la memoria: " + \
+                return "\nNo se ha podido encontrar un estado final, se ha llegado al estado inicial con backtracking habiendo explorado todos los niveles hasta completar la memoria: " + \
                        str(tamMemoria) + "\nEl tiempo de ejecución ha sido: " + str(
                     tiempoFinal - tiempoInicio) + " segundos."
 
