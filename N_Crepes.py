@@ -9,12 +9,12 @@ class N_Crepes(Problema):
         super().__init__(estado_inicial=pilaInicial, n=longPila, estado_final=list(range(1,longPila+1)))
 
     def acciones(self, estado):
-        acciones_aplicables = list(range(1,self.n+1))
+        acciones_aplicables = list(range(2 ,self.n+1))
         return acciones_aplicables
 
     def aplica(self, estado, accion):
         """"restamos uno a la accion ya que el indice de la lista empieza en 0 o en 1"""
-        accion-=2
+        accion-=1
         """Obtenemos una tupla con los k primeros elementos invertidos"""
         estadoKInvertido = estado[accion::-1]
 
