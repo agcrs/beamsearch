@@ -3,16 +3,71 @@ import time
 from N_Crepes import *
 from N_Puzzle import *
 from Utilidades import *
+import random
 
 """Metodo llamado desde el metodo busquedaHazBacktracking en el caso que se deba hacer backTracking"""
 
 
-def aplicaBacktrackingDiscrepancias(memoria, bASeleccionarDict, memoriaLlena):
+def aplicaBacktrackingDiscrepancias(memoria, memoriaLlena):
     global bAExplorar
     global discrepancias
+    global bASeleccionarDict
 
-    """Si hemos llenado la memoria sin encontar solucion aumentamos las discrepancias"""
-    if memoriaLlena:
+    """Este caso se dara cuando hayamos generado 0 sucesores para un bloque dado, porque estos ya esten en la memoria"""
+    if not memoriaLlena:
+
+        algunoConDiscrepanciaActiva = 0
+        #FIXME : si llega en caso de hbaer encontrado sucesores vacios
+        """Si estaba usando discrepancias le aumentamos, no hace falta modificar el bAExplorar porque va a ser el mismo"""
+        if(bASeleccionarDict[len(memoria)-1][1]==1):
+            memoria.pop()
+            aux=bASeleccionarDict[len(memoria)]
+            aux[0]=aux[0]+1
+            bASeleccionarDict[len(memoria)]=aux
+            actualizaInforNivelesSucesores(len(memoria)+1)
+
+            """Si no usa discrepancias actualmente buscamos el que estuviera usando por encima y le aumentamos"""
+        else:
+            discrepanciasYaUsadas=0
+            """Ahora recorrermos los nodos que ahi en la memoria desde abajo arriba buscamos el ultimo con discrepancia y este lo movemos hasta que llegue al final"""
+            for i in range(len(memoria), 0, -1):
+                datosNivel = bASeleccionarDict[i]
+
+                if (datosNivel[2] == 1):
+                    discrepanciasYaUsadas += 1
+
+                if (datosNivel[1] == 1):
+                    algunoConDiscrepanciaActiva = 1
+                    """Vemos si la discrepancia esta aplicada es decir si estamos buscando en un bloque que no es el primero"""
+                    """Limpiamos los datos de la memoria desde el nivel en adelante, es decir solo dejamos lo previo al nivel"""
+                    # Lo hacemos hasta i porque empiezan en 0 los niveles guardado en memoria en cambio en el diccionario empiezan desde el 1 es decir siempre la len de la memoria indica el proximo a selccionar del diccionario
+                    memoria = memoria[0:i]
+                    datosNivel[0] = datosNivel[0] + 1
+                    bASeleccionarDict[len(memoria)] = datosNivel
+                    actualizaInforNivelesSucesores(len(memoria) + 1)
+                    break
+
+            if not algunoConDiscrepanciaActiva:
+                # FIXME: Creo que esto es el final del algoritmo
+
+                #  FIXME: Pienso que si hay discrepancias para cada nivel de memoria y encima ya se han usado, ha terminado el algoritmo
+                if (len(memoria) <= discrepancias and discrepanciasYaUsadas >= len(memoria) - 1):
+                    return "-1"
+                else:
+                    discrepancias += 1
+                    bAExplorar = [estadoInicial]
+                    """Dejamos en la memoria solo con el estado inicial"""
+                    """ El estado inicial lo ponemos en la memoria por si hay que volver atras para generar sucesores con el backtraking """
+                    memoria = []
+                    memoria.append(bAExplorar)
+                    for i in range(1, discrepancias + 1):
+                        bASeleccionarDict[i] = [0, 1, 0]
+
+            bAExplorar = memoria[len(memoria) - 1]
+            print(str(bAExplorar) + " con discrepancis:" + str(discrepancias))
+
+        """Si hemos llenado la memoria sin encontar solucion aumentamos las discrepancias"""
+    else:
         # caso base
         if (discrepancias == 0):
             discrepancias += 1
@@ -33,6 +88,7 @@ def aplicaBacktrackingDiscrepancias(memoria, bASeleccionarDict, memoriaLlena):
 
             algunoConDiscrepanciaActiva=0
             """Ahora recorrermos los nodos que ahi en la memoria desde abajo arriba buscamos el ultimo con discrepancia y este lo movemos hasta que llegue al final"""
+            discrepanciasYaUsadas=0
             for i in range(len(memoria),0, -1):
                 datosNivel = bASeleccionarDict[i]
 
@@ -41,7 +97,8 @@ def aplicaBacktrackingDiscrepancias(memoria, bASeleccionarDict, memoriaLlena):
                  debemos subir hasta que encontremos el ultimo que aun puede moverse
                 if (datosNivel[0] == 0 and datosNivel[2] == 1):
                     """
-
+                if(datosNivel[2] == 1):
+                    discrepanciasYaUsadas+=1
                 if (datosNivel[1] == 1):
                     algunoConDiscrepanciaActiva = 1
                     """Vemos si la discrepancia esta aplicada es decir si estamos buscando en un bloque que no es el primero"""
@@ -50,14 +107,14 @@ def aplicaBacktrackingDiscrepancias(memoria, bASeleccionarDict, memoriaLlena):
                     memoria = memoria[0:i]
                     datosNivel[0] = datosNivel[0] + 1
                     bASeleccionarDict[len(memoria)] = datosNivel
-                    actualizaInforNivelesSucesores(len(memoria)+1, bASeleccionarDict)
+                    actualizaInforNivelesSucesores(len(memoria)+1)
                     break
 
             if not algunoConDiscrepanciaActiva:
                 # FIXME: Creo que esto es el final del algoritmo
 
                 #  FIXME: Pienso que si hay discrepancias para cada nivel de memoria y encima ya se han usado, ha terminado el algoritmo
-                if (len(memoria)<=discrepancias):
+                if (len(memoria)<=discrepancias and discrepanciasYaUsadas >= len(memoria)-1):
                     return "-1"
                 else:
                     discrepancias += 1
@@ -78,7 +135,8 @@ def aplicaBacktrackingDiscrepancias(memoria, bASeleccionarDict, memoriaLlena):
 
 
 """Metodo llamado cada vez que nos movamos en un nivel de arriba para indicar la nueva infromacion de los siguientes sucesores"""
-def actualizaInforNivelesSucesores(nivelSiguienteAExplorar, bASeleccionarDict):
+def actualizaInforNivelesSucesores(nivelSiguienteAExplorar):
+    global bASeleccionarDict
     global discrepancias
     """buscamos las discrepancias usadas por arriba de este nivel obsrvado para asi saber cuantas quedan por asociar"""
     discrepanciasLibres = discrepancias
@@ -98,6 +156,9 @@ def actualizaInforNivelesSucesores(nivelSiguienteAExplorar, bASeleccionarDict):
             # marcamos que ya para ese nivel no usamos discrepancia
             datosNivel[1] = 1
             discrepanciasLibres -= 1
+        else:
+            #Si ya no quedan discrepancias las ponemos a 0 las antiguas seteadas
+            datosNivel[1] = 0
 
         """Actualizamos la informacion del nivel"""
         bASeleccionarDict[nivel] = datosNivel
@@ -109,9 +170,10 @@ def actualizaInforNivelesSucesores(nivelSiguienteAExplorar, bASeleccionarDict):
 
 
 
-def busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, problema, bASeleccionarDict):
+def busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, problema):
     global bAExplorar
     global discrepancias
+    global bASeleccionarDict
     # inicialmente empezamos con 0 discrepancias es decir nos iremos guiando por los bloques mejor clasificados por la heuristica
     discrepancias = 0
     """la siguiente variable sera para ir bien cuantas discrepancias de las iniciales hemos usado ya, y saber cuantas nos quedan"""
@@ -173,14 +235,16 @@ def busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, proble
         #         raise Exception(
         #             'Mediante el backtraking hemos llegado al estado inicial sin encontrar solucion en ninguno de sus estados sucesores ')
         #     memoriaLlena = 0
-        #     memoria = aplicaBacktrackingDiscrepancias(memoria, bASeleccionarDict, memoriaLlena)
+        #     memoria = aplicaBacktrackingDiscrepancias(memoria, memoriaLlena)
         #     continue
 
         # else:
 
 
-
-
+        # FIXME: habra que hacer algun tipo de backtracking
+        if (len(estadosSucesoresEnBloques) == 0):
+            memoria = aplicaBacktrackingDiscrepancias(memoria, 0)
+            continue
 
 
         """Si tiene marcada para usar discrepancia en dicho nivel y hay un posible cantidad de bloques generados suficientes """
@@ -191,7 +255,7 @@ def busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, proble
             """ los de proximos sucesores de este nivel abajo tendra que coger los primeros para todos, contemplando siempre las discrepancias que quedan"""
 
             """buscamos las discrepancias usadas por arriba de este nivel obsrvado para asi saber cuantas quedan por asociar"""
-            actualizaInforNivelesSucesores(nivelSiguienteAExplorar, bASeleccionarDict)
+            actualizaInforNivelesSucesores(nivelSiguienteAExplorar)
 
 
         else:
@@ -200,6 +264,7 @@ def busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, proble
                 """Pregunta para tutoria si no hay tal cantidad de bloques como indica la  discrepancia se guarda para el proximo que lo permita"""
 
                 aux = bASeleccionarDict[len(memoria)]
+                aux[0] = 0
                 # marcamos que ya para ese nivel no usamos discrepancia,
                 aux[1] = 0
                 #  pero que ya se ha usado hasta visitar todos sus sucesores
@@ -209,7 +274,7 @@ def busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, proble
 
                 """Actualizamos la informacion para la busqueda con los sucesores, basicamente todos empezaran a buscar en el nodo 0, pondremos que ninguno ha usado discrepancia  y pondremos para el proximo nodo que tendra que usar discrepancia"""
 
-                actualizaInforNivelesSucesores(nivelSiguienteAExplorar, bASeleccionarDict)
+                actualizaInforNivelesSucesores(nivelSiguienteAExplorar)
 
 
             else:
@@ -224,7 +289,7 @@ def busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, proble
         """Comprobamos si la memoria esta llena"""
         if (len(memoriaAplanada) >= tamMemoria):
             memoriaLlena = 1
-            memoria = aplicaBacktrackingDiscrepancias(memoria, bASeleccionarDict, memoriaLlena)
+            memoria = aplicaBacktrackingDiscrepancias(memoria, memoriaLlena)
 
             """Fin -> completada la memoria con el backtracking y discrepancias completas"""
             if(memoria == "-1"):
@@ -257,6 +322,8 @@ def busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, proble
 
 def inicializaBusquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, tipoProblema, estadoInicial):
     global bAExplorar
+    global bASeleccionarDict
+
     """ El estado inicial lo ponemos en la memoria por si hay que volver atras para generar sucesores con el backtraking """
     memoria = []
 
@@ -281,14 +348,34 @@ def inicializaBusquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, tipoP
         problema = N_Puzzle(estadoInicial)
 
     """ Iniciamos el algortimo iterativo de busqueda """
-    return busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, problema, bASeleccionarDict)
+    return busquedaHazBacktrackingDiscrepancias(anchuraHaz, tamMemoria, memoria, problema)
 
 
-# Iniciamos el problema declarando los datos
+# # Iniciamos el problema declarando los datos
+# """ Con eso y 1 discrepancia lo encuentra """
+# anchoDelHaz = 4
+# tamDeMemoria = 130
+# tipoProblema = 'N-Puzzle'  # dos tipos: N-Puzzle o N-Crepes
+# estadoInicial = (8, 7, 6, 5, 4, 3, 2, 1, 0)
+#
+# print(inicializaBusquedaHazBacktrackingDiscrepancias(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
+
 """ Aqui inicializamos el problema que vamos a probar """
-anchoDelHaz = 10
-tamDeMemoria = 60
+anchoDelHaz = 15
+tamDeMemoria = 300
 tipoProblema = 'N-Puzzle'  # dos tipos: N-Puzzle o N-Crepes
-estadoInicial = (8, 7, 6, 5, 4, 3, 2, 1, 0)
+#estadoInicial = (4, 2, 7, 0, 6, 5, 1, 8, 3)
+#print(inicializaBusquedaHazBacktracking(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
 
-print(inicializaBusquedaHazBacktrackingDiscrepancias(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
+
+
+random.seed(20152016) #Establecemos semilla
+
+for x in range(0, 100): #Generamos los 100 problemas y los ejecutamos
+    estadoInicial = tuple(random.sample(range(0,9), 9)) #Devuelve una lista única de 9 elementos elegidos de entre la secuencia de población.
+
+    print("    ")
+    print("||------ Ejecución número " + str(x+1) + "------||")
+    print("||8-Puzzle, estado inicial: " + str(estadoInicial) + "||")
+    print(inicializaBusquedaHazBacktrackingDiscrepancias(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
+    print("||-------------------------------------------------||")

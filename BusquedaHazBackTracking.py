@@ -3,11 +3,12 @@ import time
 from N_Crepes import *
 from N_Puzzle import *
 from Utilidades import *
-
+import random
 """Metodo llamado desde el metodo busquedaHazBacktracking en el caso que se deba hacer backTracking"""
-def aplicaBacktracking(memoria, bASeleccionarDict):
+def aplicaBacktracking(memoria):
     global coste
     global bAExplorar
+    global bASeleccionarDict
     memoria.pop()  # borramos el bloque superior para volver a explorar sus sucesores y coger el siguiente
 
     """"El bloque B de estados a analizar es en este caso el ultimo almacenado en la memoria tras haber borrado
@@ -25,11 +26,12 @@ def aplicaBacktracking(memoria, bASeleccionarDict):
     print("Hacemos backtraking debido a que se han explorado todos los sucesores del nivel: " + str(
         nivelSiguienteAExplorar) + str(bAExplorar))
     coste -= 1
+    return memoria
 
-
-def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASeleccionarDict):
+def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema ):
     global bAExplorar
     global coste
+    global bASeleccionarDict
     tiempoInicio=time.clock()
 
     while (1):
@@ -38,6 +40,7 @@ def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASelecci
         """Limpiamos los sucesores de la anterior iteracion"""
         #Todos los estados que van a generarse apartir del bloque actual B que estamos visitando
         estadosSucesores = []
+        print("Se va a exploarr "+ str(bAExplorar))
 
         """si es la primera vez que se llama tenemos un solo estado-> el inicial en los bloques acutales"""
         for estado in bAExplorar:
@@ -65,16 +68,16 @@ def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASelecci
         """"Dividimos todos los estados sucesores en B bloques en funcion de la anchura del haz"""
         estadosSucesoresEnBloques = [estadosSucesores[i:i + anchuraHaz] for i in
                                      range(0, len(estadosSucesores), anchuraHaz)]
-
+        print("para el nivel "+ str(len(memoria))+ " Salen los siguientes sucesores"+ str(estadosSucesoresEnBloques))
         """"Vemos que haya un bloque B con indice que nos toca buscar con el backtraking en los sucesores, si se han acabado hay que subir un nivel como cuando la memoria esta llena"""
-        if (len(estadosSucesoresEnBloques) <= bASeleccionarDict[len(memoria)]):
+        if (len(estadosSucesoresEnBloques)== 0 or len(estadosSucesoresEnBloques) <= bASeleccionarDict[len(memoria)]):
             if (len(memoria) <= 1):
                 tiempoFinal = time.clock()
                 return "\nNo se ha podido encontrar un estado final, se ha llegado al estado inicial con backtracking habiendo explorado todos los niveles hasta completar la memoria: " + \
                        str(tamMemoria) + "\nEl tiempo de ejecución ha sido: " + str(
                     tiempoFinal - tiempoInicio) + " segundos."
 
-            aplicaBacktracking(memoria, bASeleccionarDict)
+            memoria=aplicaBacktracking(memoria)
             continue
 
         else:
@@ -90,7 +93,7 @@ def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASelecci
         if (len(memoriaAplanada) >= tamMemoria):
             #en este caso quitamos el nodo que acabamos de insertar puesto que ya no cabe en la memoria
             memoria.pop()
-            aplicaBacktracking(memoria, bASeleccionarDict)
+            memoria=aplicaBacktracking(memoria)
             continue
 
 
@@ -107,6 +110,7 @@ def busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASelecci
 def inicializaBusquedaHazBacktracking(anchuraHaz, tamMemoria, tipoProblema, estadoInicial):
     global bAExplorar
     global coste
+    global bASeleccionarDict
     problema = None
     """ El estado inicial lo ponemos en la memoria por si hay que volver atras para generar sucesores con el backtraking """
     memoria = []
@@ -132,15 +136,37 @@ def inicializaBusquedaHazBacktracking(anchuraHaz, tamMemoria, tipoProblema, esta
         problema = N_Puzzle(estadoInicial)
 
     """ Iniciamos el algortimo iterativo de busqueda """
-    return busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema, bASeleccionarDict)
+    return busquedaHazBacktracking(anchuraHaz, tamMemoria, memoria, problema)
 
 
 # Iniciamos el problema declarando los datos
 #ese ejemplo de ahi me ha tardado 65 segundos pero lo ha resuelto con backtraking el normal con esas caracteristicas no es capaz de resolverlo
 """ Aqui inicializamos el problema que vamos a probar """
-anchoDelHaz = 20
-tamDeMemoria = 600
+anchoDelHaz = 4
+tamDeMemoria = 130
 tipoProblema = 'N-Puzzle'  # dos tipos: N-Puzzle o N-Crepes
-estadoInicial = (8,7,6,5,4,3,2,1,0)
+estadoInicial = (8, 7, 6, 5, 4, 3, 2, 1, 0)
 
 print(inicializaBusquedaHazBacktracking(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
+"""Aqui inicializamos los datos del problema que vamos a probar"""
+# anchoDelHaz=10
+# tamDeMemoria=280 #siempre que la memoria sea <= al coste que nos retorna el algoritmo petara por llenar la memoria
+# tipoProblema='N-Crepes' #dos tipos: N-Puzzle o N-Crepes
+# #estadoInicial=(8, 7, 6, 5, 4, 3, 2, 1, 0)
+#
+# #estadoInicial=(4, 8, 5, 6, 1, 7, 2, 0, 3) #este estado en concreto hace que pete por memoria
+#
+# #tener en cuenta que este algoritmo no estamos metiendo en memoria el estado inicial puesto que es irrelevante porque no lo necesitaremos en el backtracking ya que no hjay en este algoritmo
+# #en el de backtraking si metemos el incial puesto que podemos llegar a el con backtracking entonces o esto se le comenta al profesor o para que se pueda comparar la capacidad de las memoria deberiamos meterlo aqui tambien
+# #print(inicializaBusquedaHaz(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
+#
+# random.seed(20152016) #Establecemos semilla
+#
+# for x in range(0, 50): #Generamos los 100 problemas y los ejecutamos
+#     estadoInicial = tuple(random.sample(range(1,31), 30)) #Devuelve una lista única de 9 elementos elegidos de entre la secuencia de población.
+#
+#     print("    ")
+#     print("||------ Ejecución número " + str(x+1) + "------||")
+#     print("||30-Crepes, estado inicial: " + str(estadoInicial) + "||")
+#     print(inicializaBusquedaHazBacktracking(anchoDelHaz, tamDeMemoria, tipoProblema, estadoInicial))
+#     print("||-------------------------------------------------||")
